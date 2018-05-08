@@ -1,4 +1,5 @@
 import random
+import copy
 
 '''
 1. 初期設定
@@ -18,7 +19,6 @@ state の現在の確率値 p のペア (k,p) をバッファに追加. 2.
 class Game:
 	def __init__(self,pieces):
 		self.pieces=pieces
-		self.next=1
 
 	def Pos(self,x):
 		return Pos(self.pieces,x)
@@ -26,12 +26,19 @@ class Game:
 	def Next(self):
 		return self.next
 
-def piecechange(g,x):
-	if g.Pos[x]=0:
-		g.Pos[x]=g.Next
-		g.Next=g.Next%2+1
-		return g.pieces
-	return None
+epsilon=random.random()
+alpha=random.uniform(0.0,0.5)
+
+def piecechange(s,x,next_player):
+	new_s=copy.deepcopy(s)
+	if new_s[x]==0:
+		new_s[x]=next_player
+		return new_s
+	print("you cannnot choose ",x)
+	print_board(new_s)
+	print("player",next_player,"'s turn\n choose piece:'")
+	x=int(input())
+	return piecechange(s,x,next_player)
 
 
 def Pos(pieces,x):
@@ -39,100 +46,146 @@ def Pos(pieces,x):
 		return pieces[x]
 	return None
 
-
-def test(epsilon,alpha,percentage_table):
-	print("epsilon: {0}".format(epsilon)+"\n"+"alpha {0}".format(alpha))
-	print("(1,2,2,1,1,2,2,0,1): {0}".format(percentage_table[(1,2,2,1,1,2,2,0,1)]))
-
-
-def OrginPercentage(first,second,third,pieces,percentage):
+def Thereis3(first,second,third,pieces,possibility):
 	if abs(pieces.count(1)-pieces.count(2))>1:
 		return 3
 	if pieces[first]==pieces[second] and pieces[first]==pieces[third]:
 		if pieces[first]!=0:
-			if percentage==0.5:
+			if possibility==0.5:
 				return pieces[first]-1
 			else:
 				return 3
 		else:
-			return percentage
+			return possibility
 	else:
-		return percentage
+		return possibility
 
-def possibility(pieces):
-	percentage=0.5
-	percentage=OrginPercentage(0,1,2,pieces,percentage)
-	percentage=OrginPercentage(3,4,5,pieces,percentage)
-	percentage=OrginPercentage(6,7,8,pieces,percentage)
-	percentage=OrginPercentage(0,3,6,pieces,percentage)
-	percentage=OrginPercentage(1,4,7,pieces,percentage)
-	percentage=OrginPercentage(2,5,8,pieces,percentage)
-	percentage=OrginPercentage(0,4,8,pieces,percentage)
-	percentage=OrginPercentage(2,4,6,pieces,percentage)
-	return percentage
+def OrginPossibility(pieces):
+	possibility=0.5
+	possibility=Thereis3(0,1,2,pieces,possibility)
+	possibility=Thereis3(3,4,5,pieces,possibility)
+	possibility=Thereis3(6,7,8,pieces,possibility)
+	possibility=Thereis3(0,3,6,pieces,possibility)
+	possibility=Thereis3(1,4,7,pieces,possibility)
+	possibility=Thereis3(2,5,8,pieces,possibility)
+	possibility=Thereis3(0,4,8,pieces,possibility)
+	possibility=Thereis3(2,4,6,pieces,possibility)
+	return possibility
 
-def OrginPercentageTable():
+def OrginPTable():
 	pieces=[0,0,0,0,0,0,0,0,0]
-	percentage_table={(0,0,0,0,0,0,0,0,0):0.5}
+	P_table={(0,0,0,0,0,0,0,0,0):0.5}
 	counter=0
+	for ii in range(0,3):
+		pieces[0]=0
+		pieces[0]=pieces[0]+ii
+		for itw in range(0,3):
+			pieces[1]=0
+			pieces[1]=pieces[1]+itw
+			for ith in range(0,3):
+				pieces[2]=0
+				pieces[2]=pieces[2]+ith
+				for twi in range(0,3):
+					pieces[3]=0
+					pieces[3]=pieces[3]+twi
+					for twtw in range(0,3):
+						pieces[4]=0
+						pieces[4]=pieces[4]+twtw
+						for twth in range(0,3):
+							pieces[5]=0
+							pieces[5]=pieces[5]+twth
+							for thi in range(0,3):
+								pieces[6]=0
+								pieces[6]=pieces[6]+thi
+								for thtw in range(0,3):
+									pieces[7]=0
+									pieces[7]=pieces[7]+thtw
+									for thth in range(0,3):
+										pieces[8]=0
+										pieces[8]=pieces[8]+thth
+										possibility=OrginPossibility(pieces)
+										if 	possibility!=3:
+											counter+=1
+											#print(pieces,counter)
+											t_pieces=tuple(pieces)
+											P_table[t_pieces]=possibility
+	return P_table
 
-epsilon=random.random()
-alpha=random.uniform(0.0,0.5)
+def test(epsilon,alpha,P_table):
+	print("epsilon: {0}".format(epsilon)+"\n"+"alpha {0}".format(alpha))
+	print("(1,2,2,1,1,2,2,0,1): {0}".format(P_table[(1,2,2,1,1,2,2,0,1)]))
 
+def GameIsOver(s):
+	P_table[tuple(s)]=(1-alpha)*P_table[tuple(s)]
+	return P_table
 
-pieces=list()
-pieces=[0,0,0,0,0,0,0,0,0]
-percentage_table={(0,0,0,0,0,0,0,0,0):0.5}
-percentage=0.5
+def FindValidMoves(valid_moves,s):
+	for i in range(0,9):
+		if s[i]==0:
+			new_s=piecechange(s,i,2)
+			t_new_s=tuple(new_s)
+			p=P_table[t_new_s]
+			valid_moves[i]=p
+	return valid_moves
 
-counter=0
-percentage_table=OrginPercentageTable()
-for ii in range(0,3):
-	pieces[0]=0
-	pieces[0]=pieces[0]+ii
-	for itw in range(0,3):
-		pieces[1]=0
-		pieces[1]=pieces[1]+itw
-		for ith in range(0,3):
-			pieces[2]=0
-			pieces[2]=pieces[2]+ith
-			for twi in range(0,3):
-				pieces[3]=0
-				pieces[3]=pieces[3]+twi
-				for twtw in range(0,3):
-					pieces[4]=0
-					pieces[4]=pieces[4]+twtw
-					for twth in range(0,3):
-						pieces[5]=0
-						pieces[5]=pieces[5]+twth
-						for thi in range(0,3):
-							pieces[6]=0
-							pieces[6]=pieces[6]+thi
-							for thtw in range(0,3):
-								pieces[7]=0
-								pieces[7]=pieces[7]+thtw
-								for thth in range(0,3):
-									pieces[8]=0
-									pieces[8]=pieces[8]+thth
-									percentage=possibility(pieces)
-									if 	percentage!=3:
-										counter+=1
-										#print(pieces,counter)
-										t_pieces=tuple(pieces)
-										percentage_table[t_pieces]=percentage
-
-s=game([0,0,0,0,0,0,0,0,0])
-for iin range(1,3)
-	print("You are player2")
-	print("player",s.Next,"'s'turn:")
-
-	changed_piece=int(input())
-	pieces=piecechange(s,changed_piece)
-	if possibility(pieces)==0:
-		t_pieces=tuple(pieces)
-		percentage_table[t_pieces]=(1-alpha)*percentage_table(t_pieces)
+def Suggest(s):
+	valid_moves={}
+	print(valid_moves)
+	valid_moves=FindValidMoves(valid_moves,s)
+	print(valid_moves)
+	x=random.uniform(0,1)
+	if(x<epsilon):
+		a=random.randint(0,len(valid_moves)-1)
 	else:
+		max_p=max(valid_moves.values())
+		max_piece=[key for key in valid_moves if valid_moves[key]==max_p]
+		a=max_piece[0]
+	print("You are player2  choose ",a)
+	print("player2's'turn:")
+	changed_piece=int(input())
+	new_s=piecechange(s,changed_piece,2)
+	print_board(new_s)
+	if(x>=epsilon):
+		t_s=tuple(s)
+		t_new_s=tuple(new_s)
+		P_table[t_s]=(1-alpha)*P_table[t_s]+alpha*P_table[t_new_s]
+	return new_s
+
+def print_board(pieces):
+	print(pieces[0]," ",pieces[1]," ",pieces[2])
+	print(pieces[3]," ",pieces[4]," ",pieces[5])
+	print(pieces[6]," ",pieces[7]," ",pieces[8])
+
+def OpponentTurn():
+
+
+def round(s):
+	s=OpponentTurn()
+
+
+P_table=OrginPTable()
 
 
 
-test(epsilon,alpha,percentage_table)
+
+s=[0,0,0,0,0,0,0,0,0]
+print_board(s)
+for i in range(1,10):
+	print("You are player2")
+	print("player1's'turn:")
+	changed_piece=int(input())
+	new_s=piecechange(s,changed_piece,1)
+	print_board(new_s)
+	if P_table[tuple(new_s)]==0:
+		print("You lose...")
+		print(P_table[tuple(s)])
+	if P_table[tuple(new_s)]==0:
+		P_table=GameIsOver(s)
+	else:
+		new_s=Suggest(new_s)
+	s=new_s
+	if P_table[tuple(s)]==1:
+		print("You win!")
+		print(P_table[tuple(s)])
+
+test(epsilon,alpha,P_table)
