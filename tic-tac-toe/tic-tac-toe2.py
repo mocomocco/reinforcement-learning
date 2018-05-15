@@ -1,5 +1,7 @@
 import random
 import copy
+import os.path
+import ast
 
 '''
 1. 初期設定
@@ -16,27 +18,19 @@ state の現在の確率値 p のペア (k,p) をバッファに追加. 2.
 以前の状態 s の確率値 V(s) を V(s) ← V(s)+α(V(s′)−V(s)) と更新 2.2.8 s′ が勝利場面か, 盤が埋ま れば引分と し て 2.1 へ,
    さもなくばs←s′ で2.2.1へ.
 '''
-class Game:
-	def __init__(self,pieces):
-		self.pieces=pieces
-
-	def Pos(self,x):
-		return Pos(self.pieces,x)
-
-	def Next(self):
-		return self.next
 
 epsilon=random.random()
 alpha=random.uniform(0.0,0.5)
 
 def piecechange(s,x,next_player):
 	new_s=copy.deepcopy(s)
-	if new_s[x]==0:
-		new_s[x]=next_player
-		return new_s
+	if 0<=x and x<=8:
+		if new_s[x]==0:
+			new_s[x]=next_player
+			return new_s
 	print("you cannnot choose ",x)
 	print_board(new_s)
-	print("player",next_player,"'s turn\n choose piece:'")
+	print("player",next_player,"'s turn\n choose piece:")
 	x=int(input())
 	return piecechange(s,x,next_player)
 
@@ -73,49 +67,56 @@ def OrginPossibility(pieces):
 	return possibility
 
 def OrginPTable():
-	pieces=[0,0,0,0,0,0,0,0,0]
-	P_table={(0,0,0,0,0,0,0,0,0):0.5}
-	counter=0
-	for ii in range(0,3):
-		pieces[0]=0
-		pieces[0]=pieces[0]+ii
-		for itw in range(0,3):
-			pieces[1]=0
-			pieces[1]=pieces[1]+itw
-			for ith in range(0,3):
-				pieces[2]=0
-				pieces[2]=pieces[2]+ith
-				for twi in range(0,3):
-					pieces[3]=0
-					pieces[3]=pieces[3]+twi
-					for twtw in range(0,3):
-						pieces[4]=0
-						pieces[4]=pieces[4]+twtw
-						for twth in range(0,3):
-							pieces[5]=0
-							pieces[5]=pieces[5]+twth
-							for thi in range(0,3):
-								pieces[6]=0
-								pieces[6]=pieces[6]+thi
-								for thtw in range(0,3):
-									pieces[7]=0
-									pieces[7]=pieces[7]+thtw
-									for thth in range(0,3):
-										pieces[8]=0
-										pieces[8]=pieces[8]+thth
-										possibility=OrginPossibility(pieces)
-										if 	possibility!=3:
-											counter+=1
-											#print(pieces,counter)
-											t_pieces=tuple(pieces)
-											P_table[t_pieces]=possibility
+	if os.path.exists("P_table.txt"):
+		f = open('P_table.txt', 'r')  #読み込みモードでオープン
+		P_table = ast.literal_eval(f.read()) #readですべて読み込む
+		f.close()
+		print(P_table)
+	else:
+		pieces=[0,0,0,0,0,0,0,0,0]
+		P_table={(0,0,0,0,0,0,0,0,0):0.5}
+		counter=0
+		for ii in range(0,3):
+			pieces[0]=0
+			pieces[0]=pieces[0]+ii
+			for itw in range(0,3):
+				pieces[1]=0
+				pieces[1]=pieces[1]+itw
+				for ith in range(0,3):
+					pieces[2]=0
+					pieces[2]=pieces[2]+ith
+					for twi in range(0,3):
+						pieces[3]=0
+						pieces[3]=pieces[3]+twi
+						for twtw in range(0,3):
+							pieces[4]=0
+							pieces[4]=pieces[4]+twtw
+							for twth in range(0,3):
+								pieces[5]=0
+								pieces[5]=pieces[5]+twth
+								for thi in range(0,3):
+									pieces[6]=0
+									pieces[6]=pieces[6]+thi
+									for thtw in range(0,3):
+										pieces[7]=0
+										pieces[7]=pieces[7]+thtw
+										for thth in range(0,3):
+											pieces[8]=0
+											pieces[8]=pieces[8]+thth
+											possibility=OrginPossibility(pieces)
+											if 	possibility!=3:
+												counter+=1
+												#print(pieces,counter)
+												t_pieces=tuple(pieces)
+												P_table[t_pieces]=possibility
 	return P_table
 
-def test(epsilon,alpha,P_table):
+def test(epsilon,alpha):
 	print("epsilon: {0}".format(epsilon)+"\n"+"alpha {0}".format(alpha))
 	print("(1,2,2,1,1,2,2,0,1): {0}".format(P_table[(1,2,2,1,1,2,2,0,1)]))
 
 def GameIsOver(s):
+	global P_table
 	P_table[tuple(s)]=(1-alpha)*P_table[tuple(s)]
 	return P_table
 
@@ -129,26 +130,39 @@ def FindValidMoves(valid_moves,s):
 	return valid_moves
 
 def Suggest(s):
+	global P_table
 	valid_moves={}
 	print(valid_moves)
 	valid_moves=FindValidMoves(valid_moves,s)
-	print(valid_moves)
-	x=random.uniform(0,1)
-	if(x<epsilon):
-		a=random.randint(0,len(valid_moves)-1)
+	if len(valid_moves)==0:
+		print("even")
+		game()
 	else:
 		max_p=max(valid_moves.values())
-		max_piece=[key for key in valid_moves if valid_moves[key]==max_p]
-		a=max_piece[0]
-	print("You are player2  choose ",a)
-	print("player2's'turn:")
-	changed_piece=int(input())
-	new_s=piecechange(s,changed_piece,2)
-	print_board(new_s)
-	if(x>=epsilon):
-		t_s=tuple(s)
-		t_new_s=tuple(new_s)
-		P_table[t_s]=(1-alpha)*P_table[t_s]+alpha*P_table[t_new_s]
+		print(valid_moves)
+		x=random.uniform(0,1)
+		if max_p==1:
+			x=x+1
+		if(x<epsilon):
+			print("random")
+			a=random.randint(0,len(valid_moves)-1)
+			piece=[key for key in valid_moves]
+			a=piece[a]
+		else:
+			print("greedy")
+			max_piece=[key for key in valid_moves if valid_moves[key]==max_p]
+			a=max_piece[0]
+		print("You are player2  choose ",a)
+		print("player2's'turn:")
+		piece=input()
+		changed_piece=int(piece)
+		new_s=piecechange(s,changed_piece,2)
+		print_board(new_s)
+		if(x>=epsilon):
+			t_s=tuple(s)
+			t_new_s=tuple(new_s)
+			P_table[t_s]=(1-alpha)*P_table[t_s]+alpha*P_table[t_new_s]
+
 	return new_s
 
 def print_board(pieces):
@@ -156,36 +170,49 @@ def print_board(pieces):
 	print(pieces[3]," ",pieces[4]," ",pieces[5])
 	print(pieces[6]," ",pieces[7]," ",pieces[8])
 
-def OpponentTurn():
-
+def OpponentTurn(s):
+	print("You are player2")
+	print("player1's'turn:")
+	piece=input()
+	while piece==" ":
+			print("player1's'turn:")
+			piece=input()
+	changed_piece=int(piece)
+	new_s=piecechange(s,changed_piece,1)
+	print_board(new_s)
+	return new_s
 
 def round(s):
-	s=OpponentTurn()
+	global P_table
+	new_s=OpponentTurn(s)
+
+	if P_table[tuple(new_s)]==0:
+		print("You lose...")
+		print(P_table[tuple(s)])
+		P_table=GameIsOver(s)
+		game()
+	else:
+		new_s=Suggest(new_s)
+		s=new_s
+		if P_table[tuple(s)]==1:
+			print("You win!")
+			print(P_table[tuple(s)])
+			game()
+		else:
+			round(s)
+
+def game():
+	s=[0,0,0,0,0,0,0,0,0]
+	print_board(s)
+	f = open('P_table.txt', 'w') # 書き込みモードで開く
+	f.write(str(P_table)) # 引数の文字列をファイルに書き込む
+	f.close()
+	round(s)
+
 
 
 P_table=OrginPTable()
 
-
-
-
-s=[0,0,0,0,0,0,0,0,0]
-print_board(s)
-for i in range(1,10):
-	print("You are player2")
-	print("player1's'turn:")
-	changed_piece=int(input())
-	new_s=piecechange(s,changed_piece,1)
-	print_board(new_s)
-	if P_table[tuple(new_s)]==0:
-		print("You lose...")
-		print(P_table[tuple(s)])
-	if P_table[tuple(new_s)]==0:
-		P_table=GameIsOver(s)
-	else:
-		new_s=Suggest(new_s)
-	s=new_s
-	if P_table[tuple(s)]==1:
-		print("You win!")
-		print(P_table[tuple(s)])
+game()
 
 test(epsilon,alpha,P_table)
