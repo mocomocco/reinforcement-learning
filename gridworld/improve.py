@@ -40,7 +40,7 @@ w=[]
 for i in range(0,5):
   for j in range(0,5):
     S=0
-    for a in range(0,4): S+=1./4*1.*(r[a,i,j]+g*v_pisd(a,i,j))
+    a=0; S+=1./4*1.*(r[a,i,j]+g*v_pisd(a,i,j))
     print(v_pi[i][j],"=",S)
     w.append(v_pi[i][j]-(S))
 z=sp.linsolve(w,v_pi[0]+v_pi[1]+v_pi[2]+v_pi[3]+v_pi[4])
@@ -50,6 +50,11 @@ print(type(z))
 #zz=np.array(np.array(z),float)
 
 print("-------ここまでbellman---------\n")
+old_z=z
+old_w=w
+MAX=0
+S=0
+for a in range(0,4): S+=1./4*1.*(r[a,i,j]+g*v_pisd(a,i,j));if(MAX<S):MAX=S
 
 for i in range(0,5):
   for j in range(0,5):
