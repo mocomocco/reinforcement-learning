@@ -1,5 +1,5 @@
 import numpy as np
-r=np.zeros((4,4,4),dtype=np.float)
+r=np.zeros((4,5,5),dtype=np.float)
 #v_pisdash=sp.Array(range(100),(4,5,5))
 #print("状態と行動に対して得られる報酬")
 #print("")
@@ -37,9 +37,12 @@ def v_pisdash(a,i,j):
 g=0.9 # gamma
 def righthand(i,j,v):#billman
   S=0
+  MAX=0
   for a in range(0,4):
-    S+=1./4*1.*(r[a,i,j]+g*v_pisdash(a,i,j))
-  return S
+    S=1./4*1.*(r[a,i,j]+g*v_pisdash(a,i,j))
+    if(MAX<S):MAX=S
+    S=0
+  return MAX
 
 eps=0.00001
 while(1):
