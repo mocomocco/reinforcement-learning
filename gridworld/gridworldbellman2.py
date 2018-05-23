@@ -10,12 +10,10 @@ r=np.zeros((4,5,5),dtype=np.float)
 for i in range(0,5):
   for j in range(0,5):
     if (i==0) and (j==1):
-      r[0,i,j]=9
-      for a in range(1,4):
+      for a in range(0,4):
         r[a,i,j]=10
     elif (i==0) and (j==3):
-      r[0,i,j]=4
-      for a in range(1,4):
+      for a in range(0,4):
         r[a,i,j]=5
     else:
       if i==0:
@@ -27,7 +25,6 @@ for i in range(0,5):
       elif j==4:
         r[1,i,j]=-1
 print("Debug r=",r)
-
 def v_pisd(a,i,j):
   if (i,j)==(0,1):
     return v_pi[4][1]
@@ -43,7 +40,7 @@ w=[]
 for i in range(0,5):
   for j in range(0,5):
     S=0
-    for a in range(0,4): S+=1./4*1.*(r[a,i,j]+g*v_pisd(a,i,j))
+    for a in range(0,4): S+=1./4*1.*(r[a,i,j]+g*v_pisd(a,i,j)) 
     print(v_pi[i][j],"=",S)
     w.append(v_pi[i][j]-(S))
 z=sp.linsolve(w,v_pi[0]+v_pi[1]+v_pi[2]+v_pi[3]+v_pi[4])
@@ -55,3 +52,4 @@ for i in range(0,5):
   for j in range(0,5):
     print("{0:8.5f}".format(z.args[0][i*5+j]),end=",")
   print("")
+

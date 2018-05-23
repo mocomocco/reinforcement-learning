@@ -10,12 +10,10 @@ r=np.zeros((4,5,5),dtype=np.float)
 for i in range(0,5):
   for j in range(0,5):
     if (i==0) and (j==1):
-      r[0,i,j]=9
-      for a in range(1,4):
+      for a in range(0,4):
         r[a,i,j]=10
     elif (i==0) and (j==3):
-      r[0,i,j]=4
-      for a in range(1,4):
+      for a in range(0,4):
         r[a,i,j]=5
     else:
       if i==0:
@@ -27,7 +25,6 @@ for i in range(0,5):
       elif j==4:
         r[1,i,j]=-1
 print("Debug r=",r)
-
 def v_pisd(a,i,j):
   if (i,j)==(0,1):
     return v_pi[4][1]
@@ -51,6 +48,9 @@ print(type(z))
 #zz=z.tolist()
 #print(type(zz))
 #zz=np.array(np.array(z),float)
+
+print("-------ここまでbellman---------\n")
+
 for i in range(0,5):
   for j in range(0,5):
     print("{0:8.5f}".format(z.args[0][i*5+j]),end=",")
